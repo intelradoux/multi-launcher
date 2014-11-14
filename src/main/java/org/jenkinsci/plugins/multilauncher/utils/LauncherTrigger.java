@@ -29,6 +29,7 @@ import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,7 +156,13 @@ public class LauncherTrigger implements Job {
 			return values;
 		}
 
-		for (ParameterDefinition parameterDefinition : MultiLauncher.getDefaultParameterDefinitions(project)) {
+		ParametersDefinitionProperty defaultProp = project.getProperty(ParametersDefinitionProperty.class);
+		List<ParameterDefinition> paramDef = defaultProp.getParameterDefinitions();
+		if (paramDef == null) {
+			return values;
+		}
+
+		for (ParameterDefinition parameterDefinition : paramDef) {
 			for (LauncherParameterValue v : launcher.getParameter()) {
 				if (v.getName().equals(parameterDefinition.getName())) {
 

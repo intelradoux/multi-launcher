@@ -26,41 +26,10 @@
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
     xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <j:invokeStatic var='parameterDefinition' className='org.jenkinsci.plugins.multilauncher.MultiLauncher' method='getDefaultParameterDefinitions'>
-    	<j:arg type="hudson.model.Job" value="${it}" />
-    </j:invokeStatic>
-
-    <f:section title="${%Parameter.Build.Scheduler.Plugin.Section.Title}">
-        <f:entry title="${%Parameter.Build.title}" field="launchers">
-        	<f:repeatable name="launchers" var="launcher" items="${instance.launchers}" add="${%Add parametrized launcher}">
-                <table class="center-align">
-                    <f:entry field="launcher">
-                        <table>
-                        	<tr>
-                                <td>
-                                    <f:entry title="${%Parameter.Build.Scheduler.Plugin.id}" field="id">
-                                        <f:textbox name="id" value="${launcher.id}" />
-                                    </f:entry>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <f:entry title="${%Parameter.Build.Scheduler.Plugin.cron}" field="cron">
-                                        <f:textbox name="cron" value="${launcher.cron}" />
-                                    </f:entry>
-                                </td>
-                            </tr>
-                            <j:forEach var="parameterDefinition" items="${instance!=null?instance.getParameterDefinitions(launcher):parameterDefinition}">
-          						<tbody>
-            						<st:include it="${parameterDefinition}"
-                        				page="${parameterDefinition.descriptor.valuePage}" />
-          						</tbody>
-        					</j:forEach>
-                        </table>
-                    </f:entry>
-                    <f:repeatableDeleteButton value="${%Delete}" />
-                </table>
-            </f:repeatable>
-        </f:entry>
-    </f:section>
+    
+    <!-- Need to have one value for trigger the descriptor so that we can reset the parameter (else removed) -->
+    
+    <f:invisibleEntry field="cron">
+            <f:textbox name="cron" value="" />
+    </f:invisibleEntry>
 </j:jelly>

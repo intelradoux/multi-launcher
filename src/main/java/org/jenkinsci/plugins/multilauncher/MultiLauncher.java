@@ -26,15 +26,11 @@ package org.jenkinsci.plugins.multilauncher;
 
 import hudson.model.JobProperty;
 import hudson.model.Job;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersDefinitionProperty;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jenkinsci.plugins.multilauncher.data.Launcher;
-import org.jenkinsci.plugins.multilauncher.data.LauncherParameterValue;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class MultiLauncher extends JobProperty<Job<?, ?>> {
@@ -49,38 +45,6 @@ public class MultiLauncher extends JobProperty<Job<?, ?>> {
 		return launchers;
 	}
 
-	public static List<ParameterDefinition> getDefaultParameterDefinitions(Job<?, ?> job) {
-		ParametersDefinitionProperty property = (ParametersDefinitionProperty) job
-				.getProperty(ParametersDefinitionProperty.class);
-		if (property != null && property.getParameterDefinitions() != null) {
-			return property.getParameterDefinitions();
-		}
-		return new ArrayList<ParameterDefinition>();
-	}
-
-	public List<ParameterDefinition> getParameterDefinitions(Launcher l) throws IOException, InterruptedException {
-		List<ParameterDefinition> definitions = getDefaultParameterDefinitions(owner);
-		if (l == null || l.getParameter() == null || l.getParameter().isEmpty()) {
-			return definitions;
-		}
-
-		List<ParameterDefinition> modifiedOne = new ArrayList<ParameterDefinition>();
-		boolean found = false;
-		for (ParameterDefinition p : definitions) {
-			found = false;
-			for (LauncherParameterValue v : l.getParameter()) {
-				if (v.getName().equals(p.getName())) {
-					modifiedOne.add(p.copyWithDefaultValue(p.createValue(null, v.getValue())));
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				modifiedOne.add(p);
-			}
-		}
-		return modifiedOne;
-	}
 
 	@Override
 	public MultiLauncherDescriptor getDescriptor() {
