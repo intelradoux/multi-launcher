@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.multilauncher;
 
 import hudson.model.Action;
 import hudson.model.AbstractProject;
-import hudson.model.ChoiceParameterDefinition;
 import hudson.model.Descriptor.FormException;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
@@ -91,19 +90,6 @@ public class MultiLauncherAction implements Action {
 			found = false;
 			for (LauncherParameterValue v : l.getParameter()) {
 				if (v.getName().equals(p.getName())) {
-					if (p instanceof ChoiceParameterDefinition) {
-						List<String> c = ((ChoiceParameterDefinition) p).getChoices();
-
-						String[] choices = c.toArray(new String[c.size()]);
-						int i = c.indexOf(v.getValue());
-						String zero = choices[0];
-						choices[0] = choices[i];
-						choices[i] = zero;
-
-						p = new ChoiceParameterDefinition(p.getName(), choices, p.getDescription());
-
-					}
-
 					modifiedOne.add(p.copyWithDefaultValue(p.createValue(null, v.getValue())));
 					found = true;
 					break;
