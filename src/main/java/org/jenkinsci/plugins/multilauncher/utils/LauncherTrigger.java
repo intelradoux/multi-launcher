@@ -36,6 +36,10 @@ import java.util.List;
 
 import jenkins.model.Jenkins;
 
+import org.acegisecurity.Authentication;
+import org.acegisecurity.GrantedAuthority;
+import org.acegisecurity.context.SecurityContextHolder;
+import org.acegisecurity.runas.RunAsUserToken;
 import org.jenkinsci.plugins.multilauncher.MultiLauncher;
 import org.jenkinsci.plugins.multilauncher.data.Launcher;
 import org.jenkinsci.plugins.multilauncher.data.LauncherParameterValue;
@@ -95,7 +99,7 @@ public class LauncherTrigger implements Job {
 
 	public static void triggerJob(Launcher launcher, hudson.model.Job<?, ?> project) {
 		JobDetail job = JobBuilder.newJob(LauncherTrigger.class)
-.usingJobData("launcher", launcher.getId())
+				.usingJobData("launcher", launcher.getId())
 				.usingJobData("project", project.getName()).withIdentity(launcher.getId(), project.getName()).build();
 
 		CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(launcher.getId(), project.getName())
@@ -104,12 +108,15 @@ public class LauncherTrigger implements Job {
 		try {
 			SCHEDULER.scheduleJob(job, trigger);
 		} catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("Scheduler error", e);
 		}
 	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
+		SecurityContextHolder.getContext().setAuthentication(
+				new RunAsUserToken("cron", "cron", "cron", new GrantedAuthority[] {}, Authentication.class));
+
 		JobDataMap data = context.getMergedJobDataMap();
 		String projectName = data.getString("project");
 		String launchName=data.getString("launcher");
@@ -120,6 +127,8 @@ public class LauncherTrigger implements Job {
 		// If no project name then project has been removed... Removing scheduled task.
 		if (project == null) {
 			removeTrigger(projectName);
+			LOG.error("Project {} is not found in project list or is not available from 'cron' user", projectName);
+			return;
 		}
 
 		// Get parameter build from project.
@@ -146,6 +155,8 @@ public class LauncherTrigger implements Job {
 
 		Jenkins.getInstance().getQueue()
 				.schedule(project, 0, new ParametersAction(values), new CauseAction(new ParameterTimerTriggerCause()));
+
+		SecurityContextHolder.getContext().setAuthentication(null);
 
 	}
 
